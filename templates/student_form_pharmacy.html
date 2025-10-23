@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School of Pharmacy Application</title>
+    <!-- 1. Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Load Google Font (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 3. Set the loaded font as the default */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* * FIX: Replaced all Tailwind @apply directives with standard CSS.
+         * The @apply directive is not processed by the browser with the CDN script.
+         */
+
+        /* Custom styles for stepper */
+        .step-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .step-item:not(:first-child)::before {
+            content: '';
+            background-color: rgb(229 231 235); /* bg-gray-200 */
+            position: absolute;
+            width: 100%;
+            height: 0.25rem; /* h-1 */
+            top: 50%;
+            transform: translateY(-50%);
+            left: -50%;
+            z-index: 5; /* Ensure it's behind the counter */
+        }
+        .step-item .step-counter {
+            height: 3rem; /* h-12 */
+            width: 3rem; /* w-12 */
+            border-radius: 9999px; /* rounded-full */
+            background-color: rgb(229 231 235); /* bg-gray-200 */
+            color: rgb(107 114 128); /* text-gray-500 */
+            font-weight: 500; /* font-medium */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            position: relative;
+        }
+        .step-item.step-active .step-counter {
+            background-color: rgb(220 38 38); /* bg-red-600 */
+            color: rgb(255 255 255); /* text-white */
+        }
+        .step-item.step-done .step-counter {
+            background-color: rgb(34 197 94); /* bg-green-500 */
+            color: rgb(255 255 255); /* text-white */
+        }
+        .step-item.step-done:not(:first-child)::before {
+            background-color: rgb(34 197 94); /* bg-green-500 */
+        }
+
+        /* FIX: Make form inputs larger using standard CSS */
+        select,
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"] {
+            padding-top: 0.75rem;    /* py-3 */
+            padding-bottom: 0.75rem; /* py-3 */
+            padding-left: 1rem;      /* px-4 */
+            padding-right: 1rem;     /* px-4 */
+            /* Added for consistency, as Tailwind forms plugin does this */
+            font-size: 1rem;
+            line-height: 1.5rem;
+            /* Ensure height is consistent */
+            height: calc(0.75rem * 2 + 1.5rem + 2px); /* py-3 + line-height + border */
+        }
+        
+        /* Specific fix for select elements to ensure consistent height */
+        select {
+             background-position: right 1rem center;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div id="preloader" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white transition-opacity duration-500 ease-out opacity-100">
+        <!-- Using the same placeholder logic as in your template -->
+        <img src="{{ url_for('static', filename='loading.gif') }}" alt="Loading..." class="w-24 h-24" onerror="this.src='https://placehold.co/100x100/FFFFFF/E53935?text=Loading...&font=inter'; this.onerror=null;">
+    </div>
+
+    <!-- Main content, hidden by default, will fade in -->
+    <div id="main-content" class="flex opacity-0 transition-opacity duration-500 ease-in">
+        
+        <!-- Sidebar (from user's file for consistency) -->
+        <nav class="fixed top-0 left-0 h-screen w-64 bg-gray-900 border-r border-gray-700 shadow-lg flex flex-col z-30">
+            <!-- Logo Area -->
+            <div class="py-6 px-8 text-center border-b-2 border-gray-700">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="University Logo" class="h-30 w-auto mx-auto object-contain rounded-lg" onerror="this.src='https://placehold.co/150x60/111827/FFFFFF?text=University+Logo&font=inter'; this.onerror=null;">
+            </div>
+            <!-- Navigation Menu -->
+            <ul class="list-none pt-5 flex-grow">
+                <li class="my-2">
+                    <a href="/student_dashboard" class="flex items-center no-underline text-gray-300 text-base font-medium py-3.5 px-8 mx-4 rounded-lg transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+                        <!-- Inline SVG icon (Lucide: layout-dashboard) -->
+                        <svg class="w-5 h-5 mr-3 text-gray-400 transition-all duration-300 group-hover:text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- My Applications (Active) -->
+                <li class="my-2">
+                    <a href="/student_dashboard/my-applications" class="flex items-center no-underline text-base font-semibold py-3.5 px-8 mx-4 rounded-lg transition-all duration-300 bg-red-600 text-white shadow-md shadow-red-500/30">
+                        <!-- Inline SVG icon (Lucide: file-text) -->
+                        <svg class="w-5 h-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8m6 4H8m6 4H8"/></svg>
+                        <span>My Applications</span>
+                    </a>
+                </li>
+
+                <!-- Application Forms (Inactive) -->
+                <li class="my-2">
+                    <a href="/student_dashboard/all-forms" class="flex items-center no-underline text-gray-300 text-base font-medium py-3.5 px-8 mx-4 rounded-lg transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+                        <!-- Inline SVG icon (Lucide: file-plus-2) -->
+                        <svg class="w-5 h-5 mr-3 text-gray-400 transition-all duration-300 group-hover:text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 12v6"/></svg>
+                        <span>Application Forms</span>
+                    </a>
+                </li>
+
+                <!-- My Payments (Inactive) -->
+                <li class="my-2">
+                    <a href="/student_dashboard/my-payments" class="flex items-center no-underline text-gray-300 text-base font-medium py-3.5 px-8 mx-4 rounded-lg transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+                        <!-- Inline SVG icon (Lucide: credit-card) -->
+                        <svg class="w-5 h-5 mr-3 text-gray-400 transition-all duration-300 group-hover:text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                        <span>My Payments</span>
+                    </a>
+                </li>
+
+                <!-- Raise Query (Inactive) -->
+                <li class="my-2">
+                    <a href="/student_dashboard/raise-query" class="flex items-center no-underline text-gray-300 text-base font-medium py-3.5 px-8 mx-4 rounded-lg transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+                        <!-- Inline SVG icon (Lucide: help-circle) -->
+                        <svg class="w-5 h-5 mr-3 text-gray-400 transition-all duration-300 group-hover:text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                        <span>Raise Query</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="ml-64 p-6 sm:p-10 w-full">
+            
+            <div class="max-w-7xl mx-auto">
+                <!-- Page Header -->
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">School of Pharmacy</h1>
+                <p class="text-gray-600 mb-8">Application Form</p>
+
+                <!-- Main Form Container -->
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    
+                    <!-- Stepper Navigation -->
+                    <div class="px-6 py-10 border-b border-gray-200">
+                        <div class="flex">
+                            <!-- Step 1: Payment -->
+                            <div class="step-item step-active" id="step-nav-1">
+                                <span class="step-counter">
+                                    <!-- Heroicon: credit-card -->
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h6m3-3.75l-3 3m0 0l-3-3m3 3V15m6-1.5h.008v.008H18V15Zm1.504 1.928L19.5 15v.228l1.504.704.004-.004Z" />
+                                    </svg>
+                                </span>
+                                <span class="text-sm font-medium text-gray-700 mt-3">Payment</span>
+                            </div>
+                            <!-- Step 2: Details -->
+                            <div class="step-item" id="step-nav-2">
+                                <span class="step-counter">
+                                    <!-- Heroicon: user-circle -->
+                                    <!-- FIX: Changed w-7 h-7 to w-6 h-6 for consistent alignment -->
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                </span>
+                                <span class="text-sm font-medium text-gray-700 mt-3">Personal & Academic Details</span>
+                            </div>
+                            <!-- Step 3: Declaration -->
+                            <div class="step-item" id="step-nav-3">
+                                <span class="step-counter">
+                                    <!-- Heroicon: check-badge -->
+                                    <!-- FIX: Changed w-7 h-7 to w-6 h-6 for consistent alignment -->
+                                    <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                                    </svg>
+                                </span>
+                                <span class="text-sm font-medium text-gray-700 mt-3">Declaration</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mt-6">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-medium text-red-600" id="step-title">Step 1 of 3</span>
+                                <span class="text-sm font-medium text-gray-600" id="progress-text">0% Complete (mandatory fields)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div id="progress-bar" class="bg-red-600 h-2.5 rounded-full" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Content -->
+                    <div class="p-6 sm:p-10">
+
+                        <!-- Step 1: Payment -->
+                        <div id="step-1">
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Confirm Application Fee</h2>
+                            <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 max-w-md mx-auto text-center">
+                                <p class="text-gray-600 text-lg">Application Fee for</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">School of Pharmacy</p>
+                                <p class="text-5xl font-extrabold text-red-600 my-6">₹1000.00</p>
+                                <p class="text-sm text-gray-500 mb-6">You will be redirected to a secure payment gateway to complete this transaction.</p>
+                                <button onclick="goToStep(2)" class="w-full bg-red-600 text-white py-3 px-6 rounded-lg font-medium text-lg hover:bg-red-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                    Click to Mock Pay
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Personal & Academic Details -->
+                        <div id="step-2" class="hidden">
+                            <form>
+                                <!-- Section: Course Preference -->
+                                <div class="bg-gray-50 rounded-lg p-6 sm:p-8 mb-8 border border-gray-200">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Course Preference</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <!-- Nationality -->
+                                        <div>
+                                            <label for="nationality" class="block text-sm font-medium text-gray-700 mb-1">Nationality *</label>
+                                            <select id="nationality" name="nationality" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option value="Indian" selected>Indian</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <!-- Level of Program -->
+                                        <div>
+                                            <label for="program-level" class="block text-sm font-medium text-gray-700 mb-1">Level of Program *</label>
+                                            <select id="program-level" name="program-level" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option value="UG" selected>UG</option>
+                                            </select>
+                                        </div>
+                                        <!-- Course (Conditional) -->
+                                        <div id="course-wrapper">
+                                            <label for="course" class="block text-sm font-medium text-gray-700 mb-1">Course *</label>
+                                            <select id="course" name="course" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option value="B.Pharm (Bachelor of Pharmacy)">B.Pharm (Bachelor of Pharmacy)</option>
+                                                <option value="B.Pharm Lateral (Bachelor of Pharmacy Lateral Entry)">B.Pharm Lateral (Bachelor of Pharmacy Lateral Entry)</option>
+                                            </select>
+                                        </div>
+                                        <!-- Specialization (Conditional) -->
+                                        <div id="specialization-wrapper" class="hidden">
+                                            <label for="specialization" class="block text-sm font-medium text-gray-700 mb-1">Specialization Preferences</label>
+                                            <input type="text" id="specialization" name="specialization" value="Pharmacy" readonly class="block w-full rounded-md border-gray-300 shadow-sm bg-gray-200 focus:border-red-500 focus:ring-red-500 cursor-not-allowed">
+                                        </div>
+                                        <!-- Accommodation Status -->
+                                        <div>
+                                            <label for="accommodation-status" class="block text-sm font-medium text-gray-700 mb-1">Accommodation Status *</label>
+                                            <select id="accommodation-status" name="accommodation" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option value="day_scholar">Day Scholar</option>
+                                                <option value="hosteler">Hosteler</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Room Type (Conditional) -->
+                                        <div id="room-type-wrapper" class="hidden">
+                                            <label for="room-type" class="block text-sm font-medium text-gray-700 mb-1">Room Type *</label>
+                                            <select id="room-type" name="room-type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option value="ac">AC Room</option>
+                                                <option value="normal">Normal Room</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- College Bus (Conditional) -->
+                                        <div id="bus-wrapper" class="hidden">
+                                            <label for="bus-availing" class="block text-sm font-medium text-gray-700 mb-1">College Bus Availing *</label>
+                                            <select id="bus-availing" name="bus-availing" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option value="yes">Yes</option>
+                                                <option value="no">No</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Pickup Point (Conditional) -->
+                                        <div id="pickup-point-wrapper" class="hidden">
+                                            <label for="pickup-point" class="block text-sm font-medium text-gray-700 mb-1">City Pickup Point *</label>
+                                            <select id="pickup-point" name="pickup-point" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option>Nagercoil</option>
+                                                <option>Marthandam</option>
+                                                <option>Thuckalay</option>
+                                                <option>Kulasekaram</option>
+                                                <option>Kanyakumari</option>
+                                                <option>Tirunelveli</option>
+                                                <option>Valliyoor</option>
+                                                <option>Palayamkottai</option>
+                                                <option>Tuticorin</option>
+                                                <option>Eral</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section: Personal Details -->
+                                <div class="bg-gray-50 rounded-lg p-6 sm:p-8 mb-8 border border-gray-200">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Personal Details</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <label for="first-name" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                                            <input type="text" id="first-name" name="first-name" placeholder="As per certificate" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="last-name" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                                            <input type="text" id="last-name" name="last-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                                            <input type="email" id="email" name="email" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="mobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number *</label>
+                                            <input type="tel" id="mobile" name="mobile" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="dob" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
+                                            <input type="date" id="dob" name="dob" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
+                                            <select id="gender" name="gender" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option>Select</option>
+                                                <option>Male</option>
+                                                <option>Female</option>
+                                                <option>Transgender</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="aadhaar" class="block text-sm font-medium text-gray-700 mb-1">Aadhaar Card Number *</label>
+                                            <input type="text" id="aadhaar" name="aadhaar" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="religion" class="block text-sm font-medium text-gray-700 mb-1">Religion *</label>
+                                            <select id="religion" name="religion" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option>Select Your Religion</option>
+                                                <option>Hindu</option>
+                                                <option>Muslim</option>
+                                                <option>Christian</option>
+                                                <option>No-Religion</option>
+                                                <option>Other</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                                            <select id="category" name="category" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option>Select Your Category</option>
+                                                <option>General/OC</option>
+                                                <option>BC</option>
+                                                <option>MBC</option>
+                                                <option>ST</option>
+                                                <option>SC</option>
+                                                <option>OBC</option>
+                                                <option>Other</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- How did you hear about us? -->
+                                        <div class="sm:col-span-2 md:col-span-3">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">How did you hear about us? *</label>
+                                            <div class="flex flex-wrap gap-x-6 gap-y-3">
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="referral" value="newspaper" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Newspaper</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="referral" value="social_media" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Social media</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" id="referral-consultants" name="referral" value="consultants" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Consultants</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="referral" value="online_campaigns" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Online Campaigns</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" id="referral-staff" name="referral" value="staff" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Staff referral</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" id="referral-student" name="referral" value="student" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Student referral</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="referral" value="stalls" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Stalls</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" name="referral" value="other" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-gray-700">Other</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Conditional Consultant Name -->
+                                        <div id="consultant-name-wrapper" class="hidden">
+                                            <label for="consultant-name" class="block text-sm font-medium text-gray-700 mb-1">Name of the consultant</label>
+                                            <input type="text" id="consultant-name" name="consultant-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+
+                                        <!-- Conditional Staff Name -->
+                                        <div id="staff-name-wrapper" class="hidden">
+                                            <label for="staff-name" class="block text-sm font-medium text-gray-700 mb-1">Name of staff</label>
+                                            <input type="text" id="staff-name" name="staff-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+
+                                        <!-- Conditional Student Name -->
+                                        <div id="student-name-wrapper" class="hidden">
+                                            <label for="student-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                            <input type="text" id="student-name" name="student-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section: Father's/Guardian's Details -->
+                                <div class="bg-gray-50 rounded-lg p-6 sm:p-8 mb-8 border border-gray-200">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Father’s/Guardian’s Details</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <label for="guardian-name" class="block text-sm font-medium text-gray-700 mb-1">Father’s/Guardian’s Name *</label>
+                                            <input type="text" id="guardian-name" name="guardian-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="guardian-mobile" class="block text-sm font-medium text-gray-700 mb-1">Father’s/Guardian’s mobile number *</label>
+                                            <input type="tel" id="guardian-mobile" name="guardian-mobile" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="guardian-email" class="block text-sm font-medium text-gray-700 mb-1">Father’s/Guardian’s Email ID</label>
+                                            <input type="email" id="guardian-email" name="guardian-email" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section: Address for Correspondence -->
+                                <div class="bg-gray-50 rounded-lg p-6 sm:p-8 mb-8 border border-gray-200">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Address for Correspondence</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+                                            <select id="country" name="country" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option>Country</option>
+                                                <option selected>India</option>
+                                                <option>Afghanistan</option>
+                                                <option>Albania</option>
+                                                <option>Algeria</option>
+                                                <option>American Samoa</option>
+                                                <option>Andorra</option>
+                                                <option>Angola</option>
+                                                <option>Anguilla</option>
+                                                <option>Australia</option>
+                                                <option>United States of America</option>
+                                                <!-- ... truncated for brevity ... -->
+                                                <option>Zimbabwe</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="district" class="block text-sm font-medium text-gray-700 mb-1">District</label>
+                                            <select id="district" name="district" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option>Select</option>
+                                                <option>Ariyalur</option>
+                                                <option>Chennai</option>
+                                                <option>Coimbatore</option>
+                                                <!-- ... truncated for brevity ... -->
+                                                <option selected>Tirunelveli</option>
+                                                <option>Viluppuram</option>
+                                                <option>Virudhunagar</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="city" class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                            <select id="city" name="city" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option>Select</option>
+                                                <option>Alangulam</option>
+                                                <option>Ambasamudram</option>
+                                                <!-- ... truncated for brevity ... -->
+                                                <option selected>Tirunelveli</option>
+                                                <option>Ullar</option>
+                                                <option>Veerakeralampudur</option>
+                                            </select>
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label for="address-1" class="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+                                            <input type="text" id="address-1" name="address-1" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="address-2" class="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                                            <input type="text" id="address-2" name="address-2" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div class="sm:col-span-1">
+                                            <label for="pincode" class="block text-sm font-medium text-gray-700 mb-1">Pincode *</label>
+                                            <input type="text" id="pincode" name="pincode" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                            <p class="text-xs text-gray-500 mt-1">In case your country doesn’t have pincode/zipcode enter 0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Section: Metric (10th Grade) Details -->
+                                <div class="bg-gray-50 rounded-lg p-6 sm:p-8 mb-8 border border-gray-200">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Metric (10th Grade) Details</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <label for="metric-school" class="block text-sm font-medium text-gray-700 mb-1">Metric School Name *</label>
+                                            <input type="text" id="metric-school" name="metric-school" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="metric-state" class="block text-sm font-medium text-gray-700 mb-1">Metric State *</label>
+                                            <select id="metric-state" name="metric-state" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select State</option>
+                                                <!-- To be populated by JS -->
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="metric-city" class="block text-sm font-medium text-gray-700 mb-1">Metric City *</label>
+                                            <select id="metric-city" name="metric-city" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500" disabled>
+                                                <option value="">Select State First</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="metric-board" class="block text-sm font-medium text-gray-700 mb-1">Metric Board *</label>
+                                            <select id="metric-board" name="metric-board" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select Board</option>
+                                                <option value="CBSE">CBSE</option>
+                                                <option value="ICSE">ICSE</option>
+                                                <option value="CIE">CIE</option>
+                                                <option value="State Board">State Board</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div id="other-board-wrapper" class="hidden">
+                                            <label for="other-board-name" class="block text-sm font-medium text-gray-700 mb-1">Other Board Name</label>
+                                            <input type="text" id="other-board-name" name="other-board-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label for="metric-percentage" class="block text-sm font-medium text-gray-700 mb-1">Marks / Percentage *</label>
+                                            <input type="number" id="metric-percentage" name="metric-percentage" min="0" max="100" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Section: Qualification Details -->
+                                <div class="bg-gray-50 rounded-lg p-6 sm:p-8 mb-8 border border-gray-200">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Qualification Details</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <label for="qualification-type" class="block text-sm font-medium text-gray-700 mb-1">Qualification Type *</label>
+                                            <select id="qualification-type" name="qualification-type" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select Qualification</option>
+                                                <option value="HSC">HSC (Higher Secondary / +2)</option>
+                                                <option value="Diploma">Diploma</option>
+                                                <option value="Both">Both</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                            
+                                    <!-- Conditional HSC Section -->
+                                    <div id="hsc-details-wrapper" class="hidden mt-8 pt-6 border-t border-gray-300 bg-white p-6 rounded-lg shadow-sm">
+                                        <h3 class="text-lg font-semibold text-gray-700 mb-4">HSC (Higher Secondary / +2) Details</h3>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                            <div>
+                                                <label for="hsc-state" class="block text-sm font-medium text-gray-700 mb-1">HSC State *</label>
+                                                <select id="hsc-state" name="hsc-state" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                    <option value="">Select State</option>
+                                                    <!-- To be populated by JS -->
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label for="hsc-city" class="block text-sm font-medium text-gray-700 mb-1">HSC City *</label>
+                                                <select id="hsc-city" name="hsc-city" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500" disabled>
+                                                    <option value="">Select State First</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label for="hsc-board" class="block text-sm font-medium text-gray-700 mb-1">HSC Board *</label>
+                                                <select id="hsc-board" name="hsc-board" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                    <option value="">Select Board</option>
+                                                    <option value="CBSE">CBSE</option>
+                                                    <option value="ICSE">ICSE</option>
+                                                    <option value="CIE">CIE</option>
+                                                    <option value="State Board">State Board</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                            <div id="other-hsc-board-wrapper" class="hidden">
+                                                <label for="other-hsc-board-name" class="block text-sm font-medium text-gray-700 mb-1">Other Board Name</label>
+                                                <input type="text" id="other-hsc-board-name" name="other-hsc-board-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                            </div>
+                                            <div>
+                                                <label for="hsc-percentage" class="block text-sm font-medium text-gray-70m-1">HSC Marks / Percentage *</label>
+                                                <input type="number" id="hsc-percentage" name="hsc-percentage" min="0" max="100" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                            </div>
+                                            <div>
+                                                <label for="hsc-result-status" class="block text-sm font-medium text-gray-700 mb-1">HSC Result Status *</label>
+                                                <select id="hsc-result-status" name="hsc-result-status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                    <option value="">Select Status</option>
+                                                    <option value="Awaited">Awaited</option>
+                                                    <option value="Declared">Declared</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                            
+                                    <!-- Conditional Diploma Section -->
+                                    <div id="diploma-details-wrapper" class="hidden mt-8 pt-6 border-t border-gray-300 bg-white p-6 rounded-lg shadow-sm">
+                                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Diploma Details</h3>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                            <div>
+                                                <label for="diploma-university" class="block text-sm font-medium text-gray-700 mb-1">Diploma University Name *</label>
+                                                <input type="text" id="diploma-university" name="diploma-university" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                            </div>
+                                            <div>
+                                                <label for="diploma-percentage" class="block text-sm font-medium text-gray-700 mb-1">Diploma Marks / Percentage *</label>
+                                                <input type="number" id="diploma-percentage" name="diploma-percentage" min="0" max="100" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                            </div>
+                                            <div>
+                                                <label for="diploma-result-status" class="block text-sm font-medium text-gray-700 mb-1">Diploma Result Status *</label>
+                                                <select id="diploma-result-status" name="diploma-result-status" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                    <option value="">Select Status</option>
+                                                    <option value="Awaited">Awaited</option>
+                                                    <option value="Declared">Declared</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                                <!-- Section: Referral / Consultant Code -->
+                                <div class="bg-gray-50 rounded-lg p-6 sm:p-8 mb-8 border border-gray-200">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Referral / Consultant Code</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <label for="has-referral" class="block text-sm font-medium text-gray-700 mb-1">Do you have a referral or consultant code? *</label>
+                                            <select id="has-referral" name="has-referral" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select</option>
+                                                <option value="yes">Yes</option>
+                                                <option value="no" selected>No</option>
+                                            </select>
+                                        </div>
+                                        <div id="consultant-code-wrapper" class="hidden">
+                                            <label for="consultant-code" class="block text-sm font-medium text-gray-700 mb-1">Consultant Code *</LAbel>
+                                            <select id="consultant-code" name="consultant-code" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                                <option value="">Select Code</option>
+                                                <option value="24001">24001</option>
+                                                <option value="24002">24002</option>
+                                                <option value="24003">24003</option>
+                                                <option value="24004">24004</option>
+                                                <option value="24005">24005</option>
+                                                <option value="24006">24006</option>
+                                                <option value="24007">24007</option>
+                                                <option value="24008">24008</option>
+                                                <option value="24009">24009</option>
+                                                <option value="24010">24010</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Navigation Buttons -->
+                                <div class="mt-12 flex justify-between">
+                                    <button type="button" onclick="goToStep(1)" class="bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 transition-all duration-300">
+                                        Back
+                                    </button>
+                                    <button type="button" onclick="goToStep(3)" class="bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                        Save & Continue
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Step 3: Declaration -->
+                        <div id="step-3" class="hidden">
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Declaration by Applicant and Parent/Guardian</h2>
+                            
+                            <!-- Declaration Box -->
+                            <div class="bg-gray-50 rounded-lg p-6 border border-gray-200 mb-6">
+                                <label class="flex items-start">
+                                    <input type="checkbox" id="declaration-agree" name="declaration-agree" class="focus:ring-red-500 h-5 w-5 text-red-600 border-gray-300 rounded mt-1">
+                                    <span class="ml-3 text-gray-700">I certify that the information submitted by me in support of this application, is true to the best of my knowledge and belief. I undertake to abide by the disciplinary rules and regulations of the institute. *</span>
+                                </label>
+                            </div>
+
+                            <!-- Signature Fields -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <!-- Signature Pad -->
+                                <div class="sm:col-span-2">
+                                    <label for="signature-canvas" class="block text-sm font-medium text-gray-700 mb-1">Applicant's Signature *</Dlabel>
+                                    <canvas id="signature-canvas" class="w-full h-40 bg-white border border-gray-300 rounded-md shadow-sm cursor-crosshair"></canvas>
+                                    <input type="hidden" id="signature-hidden" value="">
+                                    <button type="button" id="clear-signature" class="text-sm text-red-600 hover:text-red-800 mt-2">Clear Signature</button>
+                                </div>
+
+                                <div>
+                                    <label for="applicant-name" class="block text-sm font-medium text-gray-700 mb-1">Applicant's Name (Type) *</label>
+                                    <input type="text" id="applicant-name" name="applicant-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                </div>
+                                <div>
+                                    <label for="parent-name" class="block text-sm font-medium text-gray-700 mb-1">Parent's Name *</label>
+                                    <input type="text" id="parent-name" name="parent-name" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label for="declaration-date" class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                                    <input type="date" id="declaration-date" name="declaration-date" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                </div>
+                            </div>
+                            
+                            <!-- Navigation Buttons -->
+                            <div class="mt-12 flex justify-between">
+                                <button type="button" onclick="goToStep(2)" class="bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 transition-all duration-300">
+                                    Back
+                                </button>
+                                <button type="button" onclick="submitForm()" class="bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                                    Submit Application
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Success Message -->
+                        <div id="step-4" class="hidden text-center py-20">
+                            <svg class="w-24 h-24 text-green-500 mx-auto" xmlns="http://www.w3.org/2G00/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            <h2 class="text-3xl font-bold text-gray-900 mt-6 mb-4">Application Submitted!</h2>
+                            <p class="text-lg text-gray-600 max-w-md mx-auto">Thank you. Your application for the School of Pharmacy has been successfully submitted. We will review your details and get back to you soon.</p>
+<button type="button" onclick="window.location.href='/student_dashboard/all-forms'" class="mt-10 bg-red-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-red-700 transition-all duration-300">
+    Back to All Forms
+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript for Form Logic -->
+    <script>
+        // Store current step
+        let currentStep = 1;
+
+        // --- New Data for Conditional Dropdowns ---
+        const cityMap = {
+            "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tirunelveli", "Salem"],
+            "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Kollam", "Thrissur"],
+            "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru", "Hubballi", "Belagavi"],
+            "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"],
+            "Delhi": ["New Delhi", "Dwarka", "Rohini", "Saket", "Karol Bagh"],
+            "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore"],
+            "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
+            "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota"],
+            "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Agra"],
+            "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Siliguri"],
+            "Andaman and Nicobar": ["Port Blair"],
+            "Arunachal Pradesh": ["Itanagar"],
+            "Assam": ["Guwahati", "Dibrugarh", "Silchar"],
+            "Bihar": ["Patna", "Gaya", "Bhagalpur"],
+            "Chandigarh": ["Chandigarh"],
+            "Chhattisgarh": ["Raipur", "Bilaspur"],
+            "Goa": ["Panaji", "Margao"],
+            "Haryana": ["Faridabad", "Gurugram", "Panipat"],
+            "Himachal Pradesh": ["Shimla", "Manali"],
+            "Jammu and Kashmir": ["Srinagar", "Jammu"],
+            "Jharkhand": ["Ranchi", "Jamshedpur"],
+            "Ladakh": ["Leh"],
+            "Lakshadweep": ["Kavaratti"],
+            "Madhya Pradesh": ["Bhopal", "Indore", "Jabalpur"],
+            "Manipur": ["Imphal"],
+            "Meghalaya": ["Shillong"],
+            "Mizoram": ["Aizawl"],
+            "Nagaland": ["Kohima", "Dimapur"],
+            "Odisha": ["Bhubaneswar", "Cuttack"],
+            "Puducherry": ["Puducherry"],
+            "Punjab": ["Ludhiana", "Amritsar", "Jalandhar"],
+            "Sikkim": ["Gangtok"],
+            "Telangana": ["Hyderabad", "Warangal"],
+            "Tripura": ["Agartala"],
+            "Uttarakhand": ["Dehradun", "Haridwar"]
+        };
+        // --- End New Data ---
+
+        /**
+         * Populates a select dropdown with a list of states
+         * @param {HTMLSelectElement} selectEl - The <select> element to populate
+         */
+        function populateStates(selectEl) {
+            if (!selectEl) return;
+            // Clear existing options except the first one
+            while (selectEl.options.length > 1) {
+                selectEl.remove(1);
+            }
+            const states = Object.keys(cityMap).sort();
+            for (const state of states) {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                selectEl.appendChild(option);
+            }
+        }
+
+        /**
+         * Updates a city dropdown based on the selected state
+         * @param {HTMLSelectElement} stateSelectEl - The state <select> element
+         * @param {HTMLSelectElement} citySelectEl - The city <select> element
+         */
+        function updateCities(stateSelectEl, citySelectEl) {
+            if (!stateSelectEl || !citySelectEl) return;
+            
+            const selectedState = stateSelectEl.value;
+            const cities = cityMap[selectedState] || [];
+
+            // Clear previous options
+            citySelectEl.innerHTML = '';
+
+            if (selectedState && cities.length > 0) {
+                citySelectEl.disabled = false;
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "Select City";
+                citySelectEl.appendChild(defaultOption);
+
+                for (const city of cities.sort()) {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelectEl.appendChild(option);
+                }
+            } else if (selectedState) {
+                citySelectEl.disabled = true;
+                const noCityOption = document.createElement('option');
+                noCityOption.value = "";
+                noCityOption.textContent = "No cities available";
+                citySelectEl.appendChild(noCityOption);
+            } else {
+                citySelectEl.disabled = true;
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "Select State First";
+                citySelectEl.appendChild(defaultOption);
+            }
+        }
+
+        // Step titles and progress levels
+        const stepInfo = {
+            1: { title: "Step 1 of 3", progress: "10%", progressText: "0% Complete" },
+            2: { title: "Step 2 of 3", progress: "25%", progressText: "25% Complete (mandatory fields)" },
+            3: { title: "Step 3 of 3", progress: "86%", progressText: "86% Complete (mandatory fields)" },
+            4: { title: "Complete", progress: "100%", progressText: "100% Complete" }
+        };
+
+        /**
+         * Main function to navigate between steps
+         * @param {number} stepNumber - The step to navigate to
+         */
+        function goToStep(stepNumber) {
+            // Hide all steps
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('step-4').classList.add('hidden');
+            
+            // Show the target step
+            const targetStep = document.getElementById(`step-${stepNumber}`);
+            if (targetStep) {
+                targetStep.classList.remove('hidden');
+            }
+
+            // Update stepper navigation UI
+            updateStepperUI(stepNumber);
+
+            // Update progress bar and text
+            updateProgress(stepNumber);
+            
+            // Update current step
+            currentStep = stepNumber;
+
+            // Scroll to top of form when step changes
+            window.scrollTo(0, 0);
+        }
+
+        /**
+         * Updates the visual state of the stepper at the top
+         * @param {number} activeStep - The currently active step
+         */
+        function updateStepperUI(activeStep) {
+            // Reset all nav items
+            document.getElementById('step-nav-1').classList.remove('step-active', 'step-done');
+            document.getElementById('step-nav-2').classList.remove('step-active', 'step-done');
+            document.getElementById('step-nav-3').classList.remove('step-active', 'step-done');
+
+            if (activeStep === 1) {
+                document.getElementById('step-nav-1').classList.add('step-active');
+            } else if (activeStep === 2) {
+                document.getElementById('step-nav-1').classList.add('step-done');
+                document.getElementById('step-nav-2').classList.add('step-active');
+            } else if (activeStep === 3) {
+                document.getElementById('step-nav-1').classList.add('step-done');
+                document.getElementById('step-nav-2').classList.add('step-done');
+                document.getElementById('step-nav-3').classList.add('step-active');
+            } else if (activeStep === 4) {
+                // All steps done
+                document.getElementById('step-nav-1').classList.add('step-done');
+                document.getElementById('step-nav-2').classList.add('step-done');
+                document.getElementById('step-nav-3').classList.add('step-done');
+            }
+        }
+
+        /**
+         * Updates the progress bar and status text
+         * @param {number} stepNumber - The current step number
+         */
+        function updateProgress(stepNumber) {
+            const info = stepInfo[stepNumber];
+            if (info) {
+                document.getElementById('step-title').textContent = info.title;
+                document.getElementById('progress-bar').style.width = info.progress;
+                document.getElementById('progress-text').textContent = info.progressText;
+
+                // Special case for success step
+                if (stepNumber === 4) {
+                    document.getElementById('progress-bar').classList.remove('bg-red-600');
+                    document.getElementById('progress-bar').classList.add('bg-green-500');
+                } else {
+                    document.getElementById('progress-bar').classList.add('bg-red-600');
+                    document.getElementById('progress-bar').classList.remove('bg-green-500');
+                }
+            }
+        }
+
+        /**
+         * Handles the final form submission
+         */
+        function submitForm() {
+            // Simple validation
+            const isAgreed = document.getElementById('declaration-agree').checked;
+            const appName = document.getElementById('applicant-name').value;
+            const parentName = document.getElementById('parent-name').value;
+            const decDate = document.getElementById('declaration-date').value;
+            const isSigned = document.getElementById('signature-hidden').value === 'signed'; // Check signature
+
+            if (isAgreed && appName && parentName && decDate && isSigned) {
+                // All fields filled, show success
+                goToStep(4);
+            } else {
+                // In a real app, you'd show a more specific error.
+                // For this example, we'll just log to console and focus the first empty field.
+                console.error("Please fill all declaration fields.");
+                // NOTE: Using alert() is bad practice, but replacing it requires a custom modal
+                // which is outside the scope of this fix.
+                if (!isAgreed) {
+                    alert("Please agree to the declaration.");
+                    document.getElementById('declaration-agree').focus();
+                } else if (!isSigned) {
+                    alert("Please provide your signature."); 
+                } else if (!appName) {
+                    alert("Please type your name.");
+                    document.getElementById('applicant-name').focus();
+                } else if (!parentName) {
+                    alert("Please type your parent's name.");
+                    document.getElementById('parent-name').focus();
+                } else if (!decDate) {
+                    alert("Please select the date.");
+                    document.getElementById('declaration-date').focus();
+                }
+            }
+        }
+
+        /**
+         * Helper function to toggle element visibility
+         * @param {string} id - The ID of the wrapper element
+         * @param {boolean} show - True to show, false to hide
+         */
+        function toggleElement(id, show) {
+            const el = document.getElementById(id);
+            if (el) {
+                if (show) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            }
+        }
+
+        // --- Signature Pad Logic ---
+        function initializeSignaturePad() {
+            const canvas = document.getElementById('signature-canvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const clearButton = document.getElementById('clear-signature');
+            const hiddenInput = document.getElementById('signature-hidden');
+            let drawing = false;
+
+            function setCanvasSize() {
+                // Set canvas resolution to match its displayed size
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000000';
+            }
+
+            function getEventPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+
+            function startDrawing(e) {
+                e.preventDefault(); // Prevent scrolling on touch
+                drawing = true;
+                const pos = getEventPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+            }
+
+            function draw(e) {
+                e.preventDefault();
+                if (!drawing) return;
+                const pos = getEventPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                hiddenInput.value = 'signed'; // Mark as signed
+            }
+
+            function stopDrawing(e) {
+                e.preventDefault();
+                drawing = false;
+            }
+
+            function clearSignature() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                hiddenInput.value = ''; // Mark as unsigned
+            }
+
+            // Set initial size
+            setCanvasSize();
+
+            // Event Listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+
+            // Touch Events
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+            canvas.addEventListener('touchcancel', stopDrawing);
+
+            clearButton.addEventListener('click', clearSignature);
+            
+            // Resize canvas resolution if window size changes
+            window.addEventListener('resize', setCanvasSize);
+        }
+        // --- End Signature Pad Logic ---
+
+
+        // Initialize the form on first load
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- MOVED Preloader logic ---
+            const preloader = document.getElementById('preloader');
+            const mainContent = document.getElementById('main-content');
+            
+            // Fade out the preloader
+            if (preloader) {
+                preloader.classList.remove('opacity-100');
+                preloader.classList.add('opacity-0');
+            }
+            
+            // Fade in the main content
+            if (mainContent) {
+                mainContent.classList.remove('opacity-0');
+                mainContent.classList.add('opacity-100');
+            }
+
+            // Hide preloader from layout after fade out
+            setTimeout(() => {
+                if (preloader) {
+                    preloader.style.display = 'none';
+                }
+            }, 500); // Match duration of transition
+            // --- End Preloader logic ---
+            
+            goToStep(1);
+            initializeSignaturePad(); // Initialize the signature pad
+
+            // --- New Conditional Form Logic ---
+            const programLevel = document.getElementById('program-level');
+            const course = document.getElementById('course');
+            const accommodation = document.getElementById('accommodation-status');
+            const busAvailing = document.getElementById('bus-availing');
+
+            // --- Get referral checkboxes ---
+            const refConsultants = document.getElementById('referral-consultants');
+            const refStaff = document.getElementById('referral-staff');
+            const refStudent = document.getElementById('referral-student');
+            
+            // --- New Elements for Metric & Qualification ---
+            const metricState = document.getElementById('metric-state');
+            const metricCity = document.getElementById('metric-city');
+            const metricBoard = document.getElementById('metric-board');
+            
+            const qualificationType = document.getElementById('qualification-type');
+            
+            const hscState = document.getElementById('hsc-state');
+            const hscCity = document.getElementById('hsc-city');
+            const hscBoard = document.getElementById('hsc-board');
+
+            const hasReferral = document.getElementById('has-referral');
+            // --- End New Elements ---
+
+            // --- Populate State Dropdowns ---
+            populateStates(metricState);
+            populateStates(hscState);
+            // --- End Populate ---
+
+            // 1. Program Level -> Course (existing)
+            if(programLevel) {
+                programLevel.addEventListener('change', () => {
+                    const showCourse = programLevel.value === 'UG';
+                    toggleElement('course-wrapper', showCourse);
+                    // If we hide course, reset its value and hide specialization
+                    if (!showCourse) {
+                        if(course) course.value = ''; // Reset course
+                        toggleElement('specialization-wrapper', false);
+                    }
+                });
+            }
+
+            // 2. Course -> Specialization (existing)
+            if(course) {
+                course.addEventListener('change', () => {
+                    const showSpec = course.value === 'B.Pharm (Bachelor of Pharmacy)' || course.value === 'B.Pharm Lateral (Bachelor of Pharmacy Lateral Entry)';
+                    toggleElement('specialization-wrapper', showSpec);
+                });
+            }
+
+            // 3. Accommodation -> Room Type / Bus (existing)
+            if(accommodation) {
+                accommodation.addEventListener('change', () => {
+                    const status = accommodation.value;
+                    const showBus = status === 'day_scholar';
+                    const showRoom = status === 'hosteler';
+                    
+                    toggleElement('bus-wrapper', showBus);
+                    toggleElement('room-type-wrapper', showRoom);
+
+                    // If we hide bus, reset its value and hide pickup point
+                    if (!showBus) {
+                        if(busAvailing) busAvailing.value = '';
+                        toggleElement('pickup-point-wrapper', false);
+                    }
+                });
+            }
+
+            // 4. Bus Availing -> Pickup Point (existing)
+            if(busAvailing) {
+                busAvailing.addEventListener('change', () => {
+                    const showPickup = busAvailing.value === 'yes';
+                    toggleElement('pickup-point-wrapper', showPickup);
+                });
+            }
+            
+            // 5. Referral Checkboxes -> Name Inputs (existing)
+            if (refConsultants) {
+                refConsultants.addEventListener('change', () => {
+                    toggleElement('consultant-name-wrapper', refConsultants.checked);
+                });
+            }
+            
+            if (refStaff) {
+                refStaff.addEventListener('change', () => {
+                    toggleElement('staff-name-wrapper', refStaff.checked);
+                });
+            }
+
+            if (refStudent) {
+                refStudent.addEventListener('change', () => {
+                    toggleElement('student-name-wrapper', refStudent.checked);
+                });
+            }
+            
+            // --- New Listeners ---
+            // 6. Metric State -> Metric City
+            if (metricState) {
+                metricState.addEventListener('change', () => updateCities(metricState, metricCity));
+            }
+
+            // 7. Metric Board -> Other Board
+            if (metricBoard) {
+                metricBoard.addEventListener('change', () => {
+                    toggleElement('other-board-wrapper', metricBoard.value === 'Other');
+                });
+            }
+
+            // 8. Qualification Type -> HSC / Diploma sections
+            if (qualificationType) {
+                qualificationType.addEventListener('change', () => {
+                    const val = qualificationType.value;
+                    const showHSC = (val === 'HSC' || val === 'Both');
+                    const showDiploma = (val === 'Diploma' || val === 'Both'); // Fixed logic error here
+                    toggleElement('hsc-details-wrapper', showHSC);
+                    toggleElement('diploma-details-wrapper', showDiploma);
+                });
+            }
+
+            // 9. HSC State -> HSC City
+            if (hscState) {
+                hscState.addEventListener('change', () => updateCities(hscState, hscCity));
+            }
+
+            // 10. HSC Board -> Other HSC Board
+            if (hscBoard) {
+                hscBoard.addEventListener('change', () => {
+                    toggleElement('other-hsc-board-wrapper', hscBoard.value === 'Other');
+                });
+            }
+
+            // 11. Has Referral -> Consultant Code
+            if (hasReferral) {
+                hasReferral.addEventListener('change', () => {
+                    toggleElement('consultant-code-wrapper', hasReferral.value === 'yes');
+                });
+            }
+            // --- End New Listeners ---
+            
+            // --- End New Conditional Form Logic ---
+        });
+    </script>
+</body>
+</html>
